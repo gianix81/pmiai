@@ -1,0 +1,14 @@
+# Dipendenze
+node_modules/
+
+# Ambiente e segreti (NON committare mai)
+.env
+
+# Database locale e file WAL
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Log e sistema
+*.log
+.DS_Store

@@ -1,0 +1,76 @@
+// Astrazione AI: un'unica interfaccia, provider intercambiabile.
+// "mock" funziona SENZA chiavi (per test). Gli altri richiedono setup.
+import { config } from './config.js';
+
+// Chiamata generica a un modello che restituisce testo, dato un prompt.
+async function complete(system, user) {
+  const p = config.aiProvider;
+  if (p === 'mock') return mock(user);
+  if (p === 'ollama') return ollama(system, user);
+  if (p === 'gemini') return gemini(system, user);
+  if (p === 'openai') return openai(system, user);
+  return mock(user);
+}
+
+// ---------- MOCK (nessuna chiave, genera output plausibile) ----------
+function mock(user) {
+  const topic = (user.match(/tema[:\s"]+([^"\n]+)/i) || [,'novità'])[1].trim();
+  return JSON.stringify({
+    hook: `Smetti di ignorare ${topic}: ecco perché conta`,
+    caption: `Molti sottovalutano ${topic}, ma è ciò che separa chi cresce da chi resta fermo. In 3 punti: 1) parti da un obiettivo chiaro, 2) misura ciò che conta, 3) sii costante. Salva questo post per non dimenticarlo.`,
+    hashtags: ['#crescita', '#strategia', `#${topic.replace(/\s+/g,'').toLowerCase()}`],
+    cta: 'Scrivici "INFO" per saperne di più.'
+  });
+}
+
+// ---------- OLLAMA (locale, gratis) ----------
+async function ollama(system, user) {
+  const r = await fetch(`${config.ollama.url}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: config.ollama.model, prompt: `${system}\n\n${user}`, stream: false, format: 'json' }),
+  });
+  const j = await r.json();
+  return j.response;
+}
+
+// ---------- GEMINI (free tier) ----------
+async function gemini(system, user) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.model}:generateContent?key=${config.gemini.key}`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: `${system}\n\n${user}` }] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    }),
+  });
+  const j = await r.json();
+  return j?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+}
+
+// ---------- OPENAI (a pagamento) ----------
+async function openai(system, user) {
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.openai.key}` },
+    body: JSON.stringify({
+      model: config.openai.model,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+      response_format: { type: 'json_object' },
+    }),
+  });
+  const j = await r.json();
+  return j?.choices?.[0]?.message?.content || '{}';
+}
+
+// Helper: parsing sicuro del JSON restituito dal modello
+export function safeJson(text, fallback = {}) {
+  try { return JSON.parse(text); } catch {
+    const m = text && text.match(/\{[\s\S]*\}/);
+    if (m) { try { return JSON.parse(m[0]); } catch {} }
+    return fallback;
+  }
+}
+
+export { complete };
