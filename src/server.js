@@ -60,6 +60,21 @@ app.post('/webhook/instagram', async (req, res) => {
   try { console.log('IG event:', await ig.handleEvent(req.body)); } catch (e) { console.error(e); }
 });
 
+// ---------- PONTE MANYCHAT (Instagram senza App Review) ----------
+// ManyChat chiama questo endpoint con { user_input, contact_id }.
+// Nel mapping risposta di ManyChat usa il JSON path: $.output
+app.post('/webhook/manychat', async (req, res) => {
+  const uid = String(req.body.contact_id || 'manychat');
+  const text = req.body.user_input || '';
+  try {
+    const reply = await ig.replyToText(uid, text);
+    res.json({ output: reply });
+  } catch (e) {
+    console.error('manychat', e);
+    res.json({ output: 'Un attimo, ci sono un problema tecnico. Riprova tra poco.' });
+  }
+});
+
 // ---------- LEAD & SETTER ----------
 app.get('/api/leads', (req, res) => res.json(db.prepare('SELECT * FROM leads ORDER BY id DESC').all()));
 app.get('/api/leads/:id/messages', (req, res) =>

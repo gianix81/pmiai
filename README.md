@@ -61,7 +61,7 @@ Di default `AI_PROVIDER=mock` e `DRY_RUN=true`: gira **senza chiavi e senza invi
 
 Il codice è completo. Restano solo le azioni che richiedono i **tuoi account**:
 
-1. **App Review Meta** — gratis ma obbligatoria per Instagram in produzione (~20 giorni).
+1. **Collegare Instagram** — 2 strade: **(B, veloce)** ponte **ManyChat** che chiama `POST /webhook/manychat` con `{user_input, contact_id}` e rimanda `$.output` — niente App Review, live in <2h (~15 €/mese); **(A)** Meta app tua, gratis ma con App Review ~20 giorni.
 2. **Token e chiavi** — Meta, AI, SMTP, Telegram: li generi tu e li metti nel `.env`.
 3. **Un dominio + VPS** — dominio ~10 €/anno, VPS ~5 €/mese (o gira sul tuo PC).
 4. **Mettere `DRY_RUN=false`** quando sei pronto a inviare/pubblicare davvero.

@@ -81,6 +81,26 @@ async function onMessage(msg) {
   return { type: 'message', action: 'setter', qualified: r.qualified };
 }
 
+// Gestione testo -> RISPOSTA (senza inviare). Usata dal ponte ManyChat.
+// ManyChat fa da layer Instagram ufficiale (niente App Review); noi facciamo il cervello.
+export async function replyToText(userId, text, clientId = 1) {
+  const lead = db.prepare('SELECT * FROM leads WHERE ig_user_id=?').get(userId)
+    || db.prepare('SELECT * FROM leads WHERE id=?').get(
+        db.prepare('INSERT INTO leads (client_id, ig_user_id, username, source) VALUES (?,?,?,?)')
+          .run(clientId, userId, userId, 'manychat').lastInsertRowid);
+
+  if (/^\s*stop\s*$/i.test(text)) {
+    db.prepare("UPDATE leads SET status='stop' WHERE id=?").run(lead.id);
+    return 'Ok, non riceverai altri messaggi. (Rispondi quando vuoi per riattivare.)';
+  }
+  const em = text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+  if (em) db.prepare('UPDATE leads SET email=?, consent=1 WHERE id=?').run(em[0], lead.id);
+
+  const setter = await import('./setter.js');
+  const r = await setter.handleMessage(lead.id, text);
+  return r.reply || '';
+}
+
 // Invio DM: chiama la Graph API, oppure logga se DRY_RUN
 export async function sendDM(recipientId, text) {
   if (config.dryRun || !config.meta.pageToken) { console.log(`[DRY_RUN] DM -> ${recipientId}: ${text}`); return { dryRun: true }; }

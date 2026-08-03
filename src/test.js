@@ -63,6 +63,13 @@ ok(r_chat.agent === null, 'Orchestratore risponde diretto alla chiacchiera');
 const mem = db.prepare("SELECT COUNT(*) c FROM conversation_memory WHERE session_key='sess1'").get().c;
 ok(mem >= 12, 'Memoria conversazionale salvata per session_key');
 
+// 9. PONTE MANYCHAT (Instagram senza App Review)
+const mc1 = await ig.replyToText('mc_777', 'ciao voglio info');
+ok(typeof mc1 === 'string' && mc1.length > 0, 'Ponte ManyChat: risposta generata per un contatto');
+await ig.replyToText('mc_777', 'ho una palestra, la mia email e test@gym.it');
+const mcLead = db.prepare("SELECT * FROM leads WHERE ig_user_id='mc_777'").get();
+ok(mcLead && mcLead.email === 'test@gym.it' && mcLead.source === 'manychat', 'Ponte ManyChat: lead creato + email catturata');
+
 console.log('\nStato finale:',
   db.prepare('SELECT (SELECT COUNT(*) FROM clients) c,(SELECT COUNT(*) FROM posts) p,(SELECT COUNT(*) FROM leads) l,(SELECT COUNT(*) FROM bookings) b,(SELECT COUNT(*) FROM emails) e').get());
 console.log('== FINE ==\n');
