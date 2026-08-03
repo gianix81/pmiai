@@ -14,6 +14,16 @@ async function complete(system, user) {
 
 // ---------- MOCK (nessuna chiave, genera output plausibile) ----------
 function mock(user) {
+  // Caso SETTER (qualifica lead): riconosce il prompt di conversazione
+  if (/Conversazione:/i.test(user)) {
+    const turns = (user.match(/lead:/gi) || []).length;
+    if (turns >= 1) return JSON.stringify({
+      reply: 'Perfetto, ho quel che serve. Ti propongo una call: ti va uno slot questa settimana?',
+      qualified: true, score: 75, ask_booking: true,
+    });
+    return JSON.stringify({ reply: 'Ottimo! Qual è il tuo obiettivo principale e in che tempi?', qualified: false, score: 30, ask_booking: false });
+  }
+  // Caso CONTENUTI
   const topic = (user.match(/tema[:\s"]+([^"\n]+)/i) || [,'novità'])[1].trim();
   return JSON.stringify({
     hook: `Smetti di ignorare ${topic}: ecco perché conta`,

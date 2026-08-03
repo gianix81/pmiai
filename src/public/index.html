@@ -7,30 +7,30 @@
 <style>
   :root{--bg:#0c1a24;--card:#14313b;--line:#25505c;--orange:#f4a259;--green:#7cb342;--cream:#f6edd8;--muted:#9db4bd}
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--cream);padding:16px;max-width:720px;margin:0 auto}
-  h1{font-size:22px;color:#fff;margin-bottom:2px}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
-  .tabs{display:flex;gap:6px;margin-bottom:14px;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5}
-  .tabs button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:13px;padding:10px 4px;border-radius:10px;cursor:pointer}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--cream);padding:16px;max-width:760px;margin:0 auto}
+  h1{font-size:22px;color:#fff}.sub{color:var(--muted);font-size:12px;margin:2px 0 12px}
+  .tabs{display:flex;gap:6px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5;flex-wrap:wrap}
+  .tabs button{flex:1;min-width:70px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:13px;padding:10px 4px;border-radius:10px;cursor:pointer}
   .tabs button.on{background:var(--orange);color:#08151c;border-color:var(--orange)}
   .panel{display:none}.panel.on{display:block}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
-  .card .hk{color:var(--orange);font-weight:800;font-size:15px;margin-bottom:4px}
-  .card .cap{font-size:13.5px;line-height:1.5;color:var(--cream)}
-  .card .meta{font-size:12px;color:var(--muted);margin-top:8px}
-  .tag{display:inline-block;font-size:11px;color:var(--orange);margin-right:6px}
+  .hk{color:var(--orange);font-weight:800;font-size:15px}.cap{font-size:13.5px;line-height:1.5;margin-top:4px}
+  .meta{font-size:12px;color:var(--muted);margin-top:8px}.tag{color:var(--orange);margin-right:6px}
   .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   button.act{border:none;border-radius:9px;padding:9px 12px;font-weight:700;font-size:13px;cursor:pointer}
   .ok{background:var(--green);color:#08151c}.no{background:#3a2020;color:#ff9a9a}.neutral{background:#1d3b45;color:var(--cream)}
   .st{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700}
   .st.da_approvare{background:#4a3a1a;color:var(--orange)}.st.approvato{background:#1f3a24;color:var(--green)}
-  .st.scartato{background:#3a2020;color:#ff9a9a}.st.pubblicato{background:#1d3b45;color:var(--cream)}
+  .st.scartato,.st.errore{background:#3a2020;color:#ff9a9a}.st.pubblicato{background:#1d3b45;color:var(--cream)}
   input,select{background:#0f242c;border:1px solid var(--line);color:var(--cream);border-radius:9px;padding:10px;font-size:14px;width:100%}
-  .gen{display:flex;gap:8px;margin-bottom:14px}
-  .gen input{flex:1}.gen button{background:var(--orange);color:#08151c;border:none;border-radius:9px;padding:0 16px;font-weight:800;cursor:pointer}
-  .empty{color:var(--muted);text-align:center;padding:30px;font-size:14px}
+  .gen{display:flex;gap:8px;margin-bottom:12px}.gen input{flex:2}.gen select{flex:1}
+  .gen button{background:var(--orange);color:#08151c;border:none;border-radius:9px;padding:0 16px;font-weight:800;cursor:pointer}
+  .empty{color:var(--muted);text-align:center;padding:26px;font-size:14px}
   .pill{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:3px 9px}
-  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .head{display:flex;justify-content:space-between;align-items:center}
+  .chat{margin-top:8px;border-top:1px solid var(--line);padding-top:8px;display:none}
+  .msg{font-size:12.5px;margin:4px 0;padding:6px 9px;border-radius:8px;max-width:85%}
+  .msg.lead{background:#0f242c}.msg.ai{background:#1f3a24;margin-left:auto}
 </style>
 </head>
 <body>
@@ -40,55 +40,59 @@
     <button class="on" data-p="c">Contenuti</button>
     <button data-p="l">Lead</button>
     <button data-p="b">Prenotazioni</button>
+    <button data-p="e">Cold Email</button>
   </div>
 
   <div class="panel on" id="c">
     <div class="gen">
-      <input id="topic" placeholder="Tema del post (es. lead per dentisti)">
+      <input id="topic" placeholder="Tema del post">
+      <select id="client"></select>
       <button onclick="gen()">Genera</button>
     </div>
     <div id="posts"></div>
   </div>
-
   <div class="panel" id="l"><div id="leads"></div></div>
   <div class="panel" id="b"><div id="bookings"></div></div>
+  <div class="panel" id="e">
+    <div class="gen"><input id="mailto" placeholder="email@destinatario"><input id="mailsub" placeholder="oggetto"><button onclick="queueMail()">Accoda</button></div>
+    <div class="row" style="margin-bottom:10px"><button class="act neutral" onclick="procMail()">▶ Invia coda (nei limiti)</button></div>
+    <div id="emails"></div>
+  </div>
 
 <script>
 const api=(u,o)=>fetch(u,o).then(r=>r.json());
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
-  document.getElementById(b.dataset.p).classList.add('on');
-  if(b.dataset.p==='l')loadLeads();if(b.dataset.p==='b')loadBookings();
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.getElementById(b.dataset.p).classList.add('on');
+  ({l:loadLeads,b:loadBookings,e:loadEmails}[b.dataset.p]||(()=>{}))();
 });
-async function health(){const h=await api('/api/health');
-  document.getElementById('status').textContent=`AI: ${h.provider} · DRY_RUN: ${h.dryRun} · ${h.counts.posts} post · ${h.counts.leads} lead · ${h.counts.bookings} prenotazioni`;}
-async function gen(){const t=document.getElementById('topic').value||'AI per le PMI';
-  document.getElementById('topic').value='';await api('/api/posts/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:t})});loadPosts();health();}
+async function health(){const h=await api('/api/health');const r=h.readiness;
+  document.getElementById('status').textContent=`AI: ${r.ai} · IG: ${r.instagram} · Telegram: ${r.telegram} · Email: ${r.email} · DRY_RUN: ${r.dryRun} — ${h.counts.posts} post, ${h.counts.leads} lead, ${h.counts.bookings} call`;}
+async function loadClients(){const cs=await api('/api/clients');document.getElementById('client').innerHTML=cs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
+async function gen(){const t=document.getElementById('topic').value||'AI per le PMI';const cid=document.getElementById('client').value;document.getElementById('topic').value='';await api('/api/posts/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:t,client_id:Number(cid)})});loadPosts();health();}
 async function loadPosts(){const posts=await api('/api/posts');const el=document.getElementById('posts');
-  if(!posts.length){el.innerHTML='<div class="empty">Nessun post. Genera il primo qui sopra.</div>';return;}
-  el.innerHTML=posts.map(p=>`<div class="card">
-    <div class="head"><span class="hk">${esc(p.hook)}</span><span class="st ${p.status}">${p.status.replace('_',' ')}</span></div>
-    <div class="cap">${esc(p.caption)}</div>
-    <div class="meta">${(p.hashtags||[]).map(h=>`<span class="tag">${esc(h)}</span>`).join('')}<br>${esc(p.cta||'')}</div>
-    <div class="row">
-      <button class="act ok" onclick="st(${p.id},'approvato')">✓ Approva</button>
-      <button class="act no" onclick="st(${p.id},'scartato')">✕ Scarta</button>
-      <button class="act neutral" onclick="st(${p.id},'pubblicato')">↗ Pubblica</button>
-    </div></div>`).join('');}
+  if(!posts.length){el.innerHTML='<div class="empty">Nessun post. Genera il primo.</div>';return;}
+  el.innerHTML=posts.map(p=>`<div class="card"><div class="head"><span class="hk">${esc(p.hook)}</span><span class="st ${p.status}">${p.status.replace('_',' ')}</span></div>
+    <div class="cap">${esc(p.caption)}</div><div class="meta">${(p.hashtags||[]).map(h=>`<span class="tag">${esc(h)}</span>`).join('')}<br>${esc(p.cta||'')}</div>
+    <div class="row"><button class="act ok" onclick="st(${p.id},'approvato')">✓ Approva</button><button class="act no" onclick="st(${p.id},'scartato')">✕ Scarta</button></div></div>`).join('');}
 async function st(id,s){await api('/api/posts/'+id+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:s})});loadPosts();}
 async function loadLeads(){const leads=await api('/api/leads');const el=document.getElementById('leads');
-  if(!leads.length){el.innerHTML='<div class="empty">Nessun lead ancora. Arrivano dal webhook Instagram (comment-to-DM).</div>';return;}
-  el.innerHTML=leads.map(l=>`<div class="card"><div class="head"><span class="hk">@${esc(l.username||l.ig_user_id)}</span><span class="pill">${esc(l.status)} · score ${l.score}</span></div>
-    <div class="meta">Fonte: ${esc(l.source||'-')} · ${esc(l.email||'email non raccolta')}</div></div>`).join('');}
+  if(!leads.length){el.innerHTML='<div class="empty">Nessun lead. Arrivano dal comment-to-DM.</div>';return;}
+  el.innerHTML=leads.map(l=>`<div class="card"><div class="head" onclick="chat(${l.id})" style="cursor:pointer"><span class="hk">@${esc(l.username||l.ig_user_id)}</span><span class="pill">${esc(l.status)} · score ${l.score}</span></div>
+    <div class="meta">Fonte: ${esc(l.source||'-')} · ${esc(l.email||'email non raccolta')}</div><div class="chat" id="chat${l.id}"></div></div>`).join('');}
+async function chat(id){const el=document.getElementById('chat'+id);if(el.style.display==='block'){el.style.display='none';return;}
+  const ms=await api('/api/leads/'+id+'/messages');el.innerHTML=ms.map(m=>`<div class="msg ${m.role}">${esc(m.text)}</div>`).join('')||'<div class="empty">Nessun messaggio</div>';el.style.display='block';}
 async function loadBookings(){const b=await api('/api/bookings');const el=document.getElementById('bookings');
-  if(!b.length){el.innerHTML='<div class="empty">Nessuna prenotazione ancora.</div>';return;}
-  el.innerHTML=b.map(x=>`<div class="card"><div class="head"><span class="hk">@${esc(x.username||x.lead_id)}</span><span class="pill">${esc(x.status)}</span></div>
-    <div class="meta">${new Date(x.slot).toLocaleString('it-IT')}</div>
-    ${x.status==='da_confermare'?`<div class="row"><button class="act ok" onclick="conf(${x.id})">✓ Conferma</button></div>`:''}</div>`).join('');}
+  if(!b.length){el.innerHTML='<div class="empty">Nessuna prenotazione.</div>';return;}
+  el.innerHTML=b.map(x=>`<div class="card"><div class="head"><span class="hk">@${esc(x.username||x.lead_id)}</span><span class="pill">${esc(x.status)}</span></div><div class="meta">${new Date(x.slot).toLocaleString('it-IT')}</div>${x.status==='da_confermare'?`<div class="row"><button class="act ok" onclick="conf(${x.id})">✓ Conferma</button></div>`:''}</div>`).join('');}
 async function conf(id){await api('/api/bookings/'+id+'/confirm',{method:'POST'});loadBookings();}
+async function queueMail(){const to=document.getElementById('mailto').value,sub=document.getElementById('mailsub').value;if(!to)return;await api('/api/emails/queue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to,subject:sub||'Ciao',body:'Messaggio di prova.'})});document.getElementById('mailto').value='';loadEmails();}
+async function procMail(){const r=await api('/api/emails/process',{method:'POST'});alert('Inviate: '+(r.sent||0));loadEmails();}
+async function loadEmails(){const es=await api('/api/emails');const el=document.getElementById('emails');
+  if(!es.length){el.innerHTML='<div class="empty">Nessuna email in coda.</div>';return;}
+  el.innerHTML=es.map(x=>`<div class="card"><div class="head"><span class="hk">${esc(x.to_email)}</span><span class="st ${x.status==='inviata'?'approvato':x.status==='errore'?'errore':'da_approvare'}">${x.status}</span></div><div class="meta">${esc(x.subject)}</div></div>`).join('');}
 function esc(s){return String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
-health();loadPosts();
+loadClients();health();loadPosts();
 </script>
 </body>
 </html>

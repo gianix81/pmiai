@@ -13,6 +13,8 @@ if (fs.existsSync(envPath)) {
   }
 }
 
+const bool = (v, d) => (v == null ? d : v === 'true');
+
 export const config = {
   port: Number(process.env.PORT || 3000),
   aiProvider: process.env.AI_PROVIDER || 'mock',
@@ -21,9 +23,29 @@ export const config = {
   openai: { key: process.env.OPENAI_API_KEY || '', model: process.env.OPENAI_MODEL || 'gpt-4o-mini' },
   meta: {
     verifyToken: process.env.META_VERIFY_TOKEN || 'changeme',
+    appSecret: process.env.META_APP_SECRET || '',
     pageToken: process.env.META_PAGE_TOKEN || '',
     igBusinessId: process.env.IG_BUSINESS_ID || '',
   },
-  dryRun: (process.env.DRY_RUN || 'true') === 'true',
+  telegram: { token: process.env.TELEGRAM_BOT_TOKEN || '', chatId: process.env.TELEGRAM_CHAT_ID || '' },
+  smtp: {
+    host: process.env.SMTP_HOST || '', port: Number(process.env.SMTP_PORT || 587),
+    user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || 'noreply@example.com',
+    dailyLimit: Number(process.env.EMAIL_DAILY_LIMIT || 25),
+  },
+  dashboard: { user: process.env.DASHBOARD_USER || 'admin', pass: process.env.DASHBOARD_PASS || 'cambiami' },
+  dryRun: bool(process.env.DRY_RUN, true),
   maxDmPerHour: Number(process.env.MAX_DM_PER_HOUR || 180),
 };
+
+// Riepilogo di cosa è attivo (mostrato all'avvio)
+export function readiness() {
+  return {
+    ai: config.aiProvider === 'mock' ? 'mock (configura una chiave per l\'AI vera)' : config.aiProvider,
+    instagram: config.meta.pageToken ? 'collegato' : 'non collegato (serve token Meta)',
+    telegram: config.telegram.token ? 'attivo' : 'non attivo (serve bot token)',
+    email: config.smtp.host ? 'attivo' : 'non attivo (serve SMTP)',
+    dryRun: config.dryRun,
+  };
+}

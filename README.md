@@ -1,82 +1,93 @@
 # Sistema AI — Social + Lead + Booking (self-hosted, zero tool a pagamento)
 
-Scheletro completo in Node.js che sostituisce i tool a pagamento (ManyChat, Buffer, GoHighLevel, SetSmart) con codice che parla direttamente alle **API ufficiali gratuite**. Gira sul tuo computer o su un VPS.
+Progetto Node.js completo che sostituisce ManyChat, Buffer, GoHighLevel e SetSmart con codice che parla direttamente alle **API ufficiali gratuite**. Gira sul tuo PC o su un VPS.
 
-## Cosa fa (i 3 motori)
+## Cosa fa — completo e testato
 
-- **Contenuti** — genera post/caption/hashtag con l'AI, li salva, gate umano di approvazione, pubblicazione via Graph API.
-- **Comment-to-DM** — webhook Instagram: intercetta i commenti con keyword e risponde in DM, con i **guardrail di compliance Meta** (1 DM per utente/24h, limite orario).
-- **AI Setter + Booking** — qualifica il lead in conversazione (score) e crea prenotazioni con gate umano.
+- **Contenuti** — l'AI genera post con la **voce di brand per cliente**, gate umano di approvazione, pubblicazione automatica allo slot previsto (scheduler).
+- **Comment-to-DM** — webhook Instagram con **guardrail Meta** (1 DM/utente/24h, limite orario), verifica **firma X-Hub-Signature-256**, cattura email + opt-out STOP.
+- **AI Setter + Booking** — qualifica il lead in conversazione, crea la prenotazione, chiede conferma su **Telegram**.
+- **Cold email** — coda con **limite giornaliero** (deliverability) e **opt-out** automatico in calce.
+- **Multi-cliente** — ogni cliente ha voce di brand, keyword e template propri.
+- **Approvazione da telefono** — bot **Telegram** con pulsanti Approva/Scarta/Conferma.
+- **Sicurezza** — dashboard protetta da password, firma webhook, segreti solo nel `.env`.
 
-Tutto è visibile in una **dashboard web** (mobile-friendly) su `http://localhost:3000`.
+Tutto visibile nella **dashboard** su `http://localhost:3000` (login: `DASHBOARD_USER`/`DASHBOARD_PASS`).
 
 ## Avvio in 3 comandi
 
 ```bash
 npm install
 cp .env.example .env      # poi compila i valori
-npm start                 # apri http://localhost:3000
+npm start                 # http://localhost:3000
 ```
 
-Per popolare dati demo e vedere subito la dashboard piena:
+Prova subito con dati demo e test automatico:
 
 ```bash
-npm run seed
+npm run seed              # popola contenuti, lead, prenotazione, email demo
+npm test                  # smoke test: 10 verifiche su tutta la catena
 ```
 
-Di default `AI_PROVIDER=mock` e `DRY_RUN=true`: gira **senza chiavi e senza inviare nulla** davvero. Perfetto per provarlo.
+Di default `AI_PROVIDER=mock` e `DRY_RUN=true`: gira **senza chiavi e senza inviare nulla** davvero.
 
-## Costo reale
+## Risultato del test (`npm test`)
 
-| Pezzo | Costo |
-|---|---|
-| Codice + database (SQLite) | 0 € |
-| AI (Ollama locale) | 0 € · oppure Gemini free tier |
-| Instagram Graph API | 0 € (richiede App Review Meta) |
-| Calendario (collega Cal.com self-host) | 0 € |
-| Hosting | gira sul tuo PC, o VPS ~5 €/mese, o free tier |
-| Dominio (per email/credibilità) | ~10 €/anno |
+```
+✅ Contenuti generati con voce di brand
+✅ Comment-to-DM: DM inviato
+✅ Guardrail 24h: secondo DM bloccato
+✅ Email del lead catturata (opt-in)
+✅ Setter: lead qualificato (poi prenotato)
+✅ Booking creato dal setter
+✅ Opt-out STOP rispettato
+✅ Scheduler: post approvato pubblicato
+✅ Cold email inviata con opt-out
+✅ Multi-cliente: post per il secondo cliente
+```
 
-## Configurazione AI
+## Configurazione (nel `.env`)
 
-Cambia `AI_PROVIDER` nel `.env`:
+| Cosa | Variabili | Come averlo |
+|---|---|---|
+| AI | `AI_PROVIDER` + chiave | `ollama` (locale gratis) o `gemini` (free tier) |
+| Instagram | `META_*`, `IG_BUSINESS_ID` | Meta Developer App + App Review |
+| Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | @BotFather (gratis) |
+| Cold email | `SMTP_*` | il tuo dominio via Google/Brevo |
+| Dashboard | `DASHBOARD_USER/PASS` | scegli tu |
 
-- `mock` — nessuna chiave, output di test (default)
-- `ollama` — modello locale gratis. Installa [Ollama](https://ollama.com), poi `ollama run llama3.1`
-- `gemini` — free tier. Chiave da [aistudio.google.com](https://aistudio.google.com)
-- `openai` — a pagamento
+## Cosa devi fare TU (le 4 cose che il codice non può fare da solo)
 
-## Collegare Instagram (produzione)
+Il codice è completo. Restano solo le azioni che richiedono i **tuoi account**:
 
-1. Crea una Meta Developer App (tipo Business) + Business Verification.
-2. Ottieni i permessi `instagram_manage_comments`, `instagram_manage_messages` (App Review, ~20 giorni).
-3. Metti `META_PAGE_TOKEN` e `IG_BUSINESS_ID` nel `.env`, e `DRY_RUN=false`.
-4. Registra il webhook su `https://tuodominio/webhook/instagram` con il `META_VERIFY_TOKEN` scelto.
-   Per esporre il localhost in HTTPS gratis: **Cloudflare Tunnel** o `ngrok`.
+1. **App Review Meta** — gratis ma obbligatoria per Instagram in produzione (~20 giorni).
+2. **Token e chiavi** — Meta, AI, SMTP, Telegram: li generi tu e li metti nel `.env`.
+3. **Un dominio + VPS** — dominio ~10 €/anno, VPS ~5 €/mese (o gira sul tuo PC).
+4. **Mettere `DRY_RUN=false`** quando sei pronto a inviare/pubblicare davvero.
+
+Finché non fai queste, tutto gira in **dry-run** (logga invece di inviare) — utile per provarlo senza rischi.
 
 ## Struttura
 
 ```
 src/
-  server.js            Express: collega tutto
-  config.js            legge .env
-  db.js                SQLite (posts, leads, messages, bookings, dm_log)
-  ai.js                astrazione AI (mock/ollama/gemini/openai)
+  server.js          Express + auth + avvio scheduler/telegram
+  config.js          legge .env + readiness()
+  db.js              SQLite (clients, posts, leads, messages, bookings, emails, dm_log)
+  ai.js              astrazione AI (mock/ollama/gemini/openai)
   modules/
-    content.js         MOTORE A — contenuti
-    instagram.js       MOTORE B — comment-to-DM + guardrail + publish
-    setter.js          MOTORE C1 — qualifica AI
-    booking.js         MOTORE C2 — slot + prenotazioni
-  public/index.html    dashboard
-  seed.js              dati demo
+    content.js       contenuti + voce di brand
+    instagram.js     comment-to-DM + guardrail + firma + publish
+    setter.js        qualifica AI -> booking
+    booking.js       slot + prenotazioni
+    email.js         cold email + limite giornaliero + opt-out
+    telegram.js      approvazione dal telefono (polling)
+    scheduler.js     pubblica post + smaltisce coda email
+  public/index.html  dashboard
+  seed.js            dati demo
+  test.js            smoke test (npm test)
 ```
 
-## Prossimi pezzi da aggiungere
+Vedi **DEPLOY.md** per portarlo online (GitHub → VPS → webhook).
 
-- Approvazione via Telegram (gate umano dal telefono)
-- Cold email con SPF/DKIM/DMARC + warm-up
-- Integrazione Cal.com reale per gli slot
-- Multi-cliente (già predisposto: campo `client` nei post)
-- Scheduler automatico dei post approvati (cron)
-
-> Nota compliance: usa **solo** l'API ufficiale Instagram. Mai automazioni che chiedono la password: sono contro le regole Meta e portano al ban.
+> Compliance: usa **solo** l'API ufficiale Instagram. Mai automazioni che chiedono la password: contro le regole Meta = ban.

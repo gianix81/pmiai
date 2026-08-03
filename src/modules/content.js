@@ -1,50 +1,55 @@
-// MOTORE A — Contenuti: genera bozze con l'AI, le salva, gestisce l'approvazione.
+// MOTORE A — Contenuti: genera bozze con l'AI (voce di brand per cliente),
+// notifica su Telegram per l'approvazione, gestisce lo stato.
 import db from '../db.js';
 import { complete, safeJson } from '../ai.js';
 
-const BRAND_SYSTEM = `Sei il social media strategist del brand. Scrivi in italiano, tono diretto e concreto.
-Restituisci SOLO JSON valido con i campi: hook (max 8 parole), caption (60-120 parole),
-hashtags (array di 3-5), cta (una frase). Niente altro testo.`;
-
-// Genera un singolo post per un pilastro/tema
-export async function generatePost({ client = 'demo', pillar = 'educativo', topic = 'AI per le PMI' }) {
-  const user = `Genera 1 post per il pilastro "${pillar}" sul tema: "${topic}".`;
-  const raw = await complete(BRAND_SYSTEM, user);
-  const j = safeJson(raw, {});
-  const info = db.prepare(`INSERT INTO posts (client, pillar, topic, hook, caption, hashtags, cta)
-    VALUES (?,?,?,?,?,?,?)`).run(
-      client, pillar, topic,
-      j.hook || '', j.caption || '',
-      JSON.stringify(j.hashtags || []), j.cta || '');
-  return getPost(info.lastInsertRowid);
+function client(id = 1) {
+  return db.prepare('SELECT * FROM clients WHERE id = ?').get(id) || { brand_voice: '', name: 'Demo' };
 }
 
-// Genera un batch di post (es. un mini calendario)
-export async function generateBatch(topics = [], client = 'demo') {
+function systemFor(c) {
+  return `Sei il social media strategist di "${c.name}". ${c.brand_voice || ''}
+Scrivi in italiano. Restituisci SOLO JSON valido con: hook (max 8 parole),
+caption (60-120 parole), hashtags (array 3-5), cta (una frase). Niente altro.`;
+}
+
+export async function generatePost({ clientId = 1, pillar = 'educativo', topic = 'AI per le PMI', notify = true } = {}) {
+  const c = client(clientId);
+  const raw = await complete(systemFor(c), `Genera 1 post per il pilastro "${pillar}" sul tema: "${topic}".`);
+  const j = safeJson(raw, {});
+  const info = db.prepare(`INSERT INTO posts (client_id, pillar, topic, hook, caption, hashtags, cta)
+    VALUES (?,?,?,?,?,?,?)`).run(clientId, pillar, topic,
+      j.hook || '', j.caption || '', JSON.stringify(j.hashtags || []), j.cta || '');
+  const post = getPost(info.lastInsertRowid);
+  if (notify) { // notifica Telegram (import dinamico per evitare cicli)
+    import('./telegram.js').then(t => t.askPost(post)).catch(() => {});
+  }
+  return post;
+}
+
+export async function generateBatch(topics = [], clientId = 1) {
   const out = [];
-  for (const t of topics) out.push(await generatePost({ client, topic: t }));
+  for (const t of topics) out.push(await generatePost({ clientId, topic: t }));
   return out;
 }
 
-export function listPosts(status) {
-  const q = status
-    ? db.prepare('SELECT * FROM posts WHERE status = ? ORDER BY id DESC')
-    : db.prepare('SELECT * FROM posts ORDER BY id DESC');
-  return (status ? q.all(status) : q.all()).map(decorate);
+export function listPosts(status, clientId) {
+  let sql = 'SELECT * FROM posts', where = [], args = [];
+  if (status) { where.push('status = ?'); args.push(status); }
+  if (clientId) { where.push('client_id = ?'); args.push(clientId); }
+  if (where.length) sql += ' WHERE ' + where.join(' AND ');
+  sql += ' ORDER BY id DESC';
+  return db.prepare(sql).all(...args).map(decorate);
 }
 
-export function getPost(id) {
-  return decorate(db.prepare('SELECT * FROM posts WHERE id = ?').get(id));
-}
+export function getPost(id) { return decorate(db.prepare('SELECT * FROM posts WHERE id = ?').get(id)); }
 
-// Approva/scarta/programma (il "gate umano")
-export function setStatus(id, status, scheduledAt = null) {
-  db.prepare('UPDATE posts SET status = ?, scheduled_at = ? WHERE id = ?').run(status, scheduledAt, id);
+// Gate umano: approva/scarta/programma. scheduledAt ISO opzionale.
+export function setStatus(id, status, scheduledAt = null, approvedBy = 'dashboard') {
+  db.prepare('UPDATE posts SET status = ?, scheduled_at = COALESCE(?, scheduled_at), approved_by = ? WHERE id = ?')
+    .run(status, scheduledAt, approvedBy, id);
   return getPost(id);
 }
 
-function decorate(p) {
-  if (!p) return null;
-  return { ...p, hashtags: safeParse(p.hashtags) };
-}
+function decorate(p) { return p ? { ...p, hashtags: safeParse(p.hashtags) } : null; }
 function safeParse(s) { try { return JSON.parse(s); } catch { return []; } }
