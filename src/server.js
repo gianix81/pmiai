@@ -13,6 +13,7 @@ import * as telegram from './modules/telegram.js';
 import * as scheduler from './modules/scheduler.js';
 import * as orchestrator from './modules/orchestrator.js';
 import * as knowledge from './modules/knowledge.js';
+import * as briefing from './modules/briefing.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -100,6 +101,10 @@ app.post('/api/chat', async (req, res) => {
 });
 app.get('/api/agents', (_req, res) =>
   res.json(Object.entries(orchestrator.AGENTS).map(([k, v]) => ({ name: k, emoji: v.emoji, desc: v.desc }))));
+
+// ---------- MORNING BRIEF (Sole, proattivo) ----------
+app.get('/api/brief', async (_req, res) => res.json({ text: await briefing.dailyBrief() }));
+app.post('/api/brief/send', async (_req, res) => res.json({ text: await briefing.sendDailyBrief() }));
 
 // ---------- KNOWLEDGE BASE ----------
 app.get('/api/knowledge', (_req, res) => res.json(knowledge.listKnowledge()));

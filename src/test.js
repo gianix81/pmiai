@@ -70,6 +70,11 @@ await ig.replyToText('mc_777', 'ho una palestra, la mia email e test@gym.it');
 const mcLead = db.prepare("SELECT * FROM leads WHERE ig_user_id='mc_777'").get();
 ok(mcLead && mcLead.email === 'test@gym.it' && mcLead.source === 'manychat', 'Ponte ManyChat: lead creato + email catturata');
 
+// 10. MORNING BRIEF proattivo (Sole)
+const brief = await import('./modules/briefing.js');
+const txt = await brief.dailyBrief();
+ok(typeof txt === 'string' && /brief di oggi/i.test(txt) && /Appuntamenti/i.test(txt), 'Morning brief di Sole generato con i dati reali');
+
 console.log('\nStato finale:',
   db.prepare('SELECT (SELECT COUNT(*) FROM clients) c,(SELECT COUNT(*) FROM posts) p,(SELECT COUNT(*) FROM leads) l,(SELECT COUNT(*) FROM bookings) b,(SELECT COUNT(*) FROM emails) e').get());
 console.log('== FINE ==\n');

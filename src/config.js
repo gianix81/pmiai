@@ -42,6 +42,7 @@ export const config = {
   dashboard: { user: process.env.DASHBOARD_USER || 'admin', pass: process.env.DASHBOARD_PASS || 'cambiami' },
   dryRun: bool(process.env.DRY_RUN, true),
   maxDmPerHour: Number(process.env.MAX_DM_PER_HOUR || 180),
+  briefHour: Number(process.env.BRIEF_HOUR || 7), // ora del morning brief di Sole
 };
 
 // Riepilogo di cosa è attivo (mostrato all'avvio)
