@@ -11,8 +11,10 @@
     "ai:check": "node src/scripts/ai-check.js",
     "google:auth": "node src/scripts/google-auth.js"
   },
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "dependencies": {
-    "better-sqlite3": "^11.3.0",
     "express": "^4.21.0",
     "nodemailer": "^9.0.3"
   }

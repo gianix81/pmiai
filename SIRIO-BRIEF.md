@@ -40,12 +40,14 @@ Filosofia: sostituire i tool a pagamento (ManyChat, Buffer, GoHighLevel, SetSmar
 - 🌙 **Luna completa** (`modules/accounting.js`) — import **CSV estratto conto di qualsiasi banca** (rileva separatore, header sepolto, importi `1.234,56`, colonne Entrate/Uscite o Dare/Avere, date it/ISO), **anti-duplicato** via hash, **categorizzazione AI** su 13 categorie con euristica di sicurezza, **cashflow** per mese e categoria, **scadenze** (finiscono nel morning brief), report testuale pronto per Telegram.
 - ☀️ **Sole collegato a Google** (`modules/google.js`) — Gmail + Calendar **in sola lettura**, zero dipendenze (REST + refresh token), **triage AI** della posta (urgente/oggi/può aspettare/ignora), agenda del giorno nel morning brief, **`npm run google:auth`** per ottenere il token in 2 minuti. Se non è configurato, degrada senza rompere nulla.
 - 🖥 **Dashboard a 7 tab** — aggiunte **🌙 Contabilità** (drag&drop del CSV, KPI, movimenti, scadenze) e **📚 Documenti** (indicizza, chiedi, elimina).
+- 🗄 **Zero compilazione** (`src/sqlite.js`) — via `better-sqlite3` (modulo nativo: su Windows con Node 24 pretendeva Visual Studio). Ora si usa lo **SQLite integrato in Node** (`node:sqlite`, richiede Node ≥ 22.5); `better-sqlite3` resta come dipendenza *opzionale* per chi gira su Node vecchi. `npm install` installa solo express e nodemailer.
 
 ### Struttura del codice
 ```
 src/
   server.js          Express + auth + avvio scheduler/telegram
   config.js          legge .env (AI, RAG, Google, …) + readiness()
+  sqlite.js          adattatore: node:sqlite integrato (fallback better-sqlite3)
   db.js              SQLite (clients, posts, leads, messages, bookings, emails,
                      dm_log, conversation_memory, knowledge, documents, chunks,
                      transactions, deadlines)
@@ -73,6 +75,7 @@ DEPLOY.md            GitHub -> VPS -> webhook
 
 ### Comandi
 ```
+# richiede Node >= 22.5 (nessun compilatore C++ necessario)
 npm install
 npm run seed        # dati demo
 npm test            # 50 verifiche ✅

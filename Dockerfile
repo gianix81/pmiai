@@ -1,11 +1,9 @@
 FROM node:22-slim
 WORKDIR /app
 
-# better-sqlite3 richiede build tools per la compilazione nativa
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
-
+# Nessun build tool: SQLite è integrato in Node (node:sqlite, richiede Node >= 22.5)
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev --omit=optional
 COPY . .
 
 # La cartella data (SQLite) va montata come volume per persistere

@@ -183,7 +183,7 @@ app.listen(config.port, () => {
   console.log(`\n  Sistema AI su http://localhost:${config.port}`);
   console.log(`  AI: ${r.ai} | Embeddings: ${r.embeddings}`);
   console.log(`  Instagram: ${r.instagram} | Telegram: ${r.telegram} | Email: ${r.email}`);
-  console.log(`  Google: ${r.google} | DRY_RUN: ${r.dryRun}\n`);
+  console.log(`  Google: ${r.google} | Database: ${r.database} | DRY_RUN: ${r.dryRun}\n`);
   scheduler.start();
   telegram.startPolling();
 });

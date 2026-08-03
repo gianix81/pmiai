@@ -1,14 +1,13 @@
-// Database SQLite locale (un solo file, zero server esterni)
-import Database from 'better-sqlite3';
+// Database SQLite locale (un solo file, zero server esterni, zero compilazione)
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { openDatabase } from './sqlite.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, '..', 'data');
 fs.mkdirSync(dataDir, { recursive: true });
-const db = new Database(path.join(dataDir, 'sistema.db'));
-db.pragma('journal_mode = WAL');
+const db = openDatabase(path.join(dataDir, 'sistema.db'));
 
 db.exec(`
 -- Clienti gestiti (multi-cliente): ognuno ha la sua voce di brand e le sue keyword

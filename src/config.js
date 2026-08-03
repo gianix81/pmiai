@@ -98,6 +98,10 @@ export const config = {
   briefHour: num(process.env.BRIEF_HOUR, 7), // ora del morning brief di Sole
 };
 
+// Motore SQLite in uso (informativo: non deve far fallire il config)
+let dbEngine = 'sconosciuto';
+try { dbEngine = (await import('./sqlite.js')).engine; } catch { }
+
 // Riepilogo di cosa è attivo (mostrato all'avvio)
 export function readiness() {
   return {
@@ -107,6 +111,7 @@ export function readiness() {
     telegram: config.telegram.token ? 'attivo' : 'non attivo (serve bot token)',
     email: config.smtp.host ? 'attivo' : 'non attivo (serve SMTP)',
     google: config.google.refreshToken ? 'collegato (Gmail+Calendar sola lettura)' : 'non collegato (npm run google:auth)',
+    database: dbEngine,
     dryRun: config.dryRun,
   };
 }

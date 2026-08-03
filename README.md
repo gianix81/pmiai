@@ -1,6 +1,10 @@
 # 🌟 Sirio — dipendenti artificiali self-hosted (zero tool a pagamento)
 
-Progetto Node.js completo che sostituisce ManyChat, Buffer, GoHighLevel e SetSmart con codice che parla direttamente alle **API ufficiali gratuite**. Gira sul tuo PC o su un VPS. Database: un singolo file SQLite. Dipendenze: 3.
+Progetto Node.js completo che sostituisce ManyChat, Buffer, GoHighLevel e SetSmart con codice che parla direttamente alle **API ufficiali gratuite**. Gira sul tuo PC o su un VPS.
+
+**Requisito: Node ≥ 22.5** — usa lo SQLite **integrato nel runtime** (`node:sqlite`), quindi *nessuna compilazione nativa*, niente Visual Studio o build-essential. Dipendenze installate: 2 (express, nodemailer). Database: un singolo file.
+
+<sub>Su Node più vecchi di 22.5: `npm i better-sqlite3` — `src/sqlite.js` lo rileva e lo usa automaticamente come fallback (ma lì serve un compilatore C++).</sub>
 
 ## Cosa fa — completo e testato (50 verifiche verdi)
 
@@ -112,6 +116,7 @@ Finché non fai queste, tutto gira in **dry-run** (logga invece di inviare) — 
 src/
   server.js          Express + auth + avvio scheduler/telegram
   config.js          legge .env + readiness()
+  sqlite.js          adattatore: node:sqlite integrato (fallback better-sqlite3)
   db.js              SQLite (clients, posts, leads, messages, bookings, emails,
                      dm_log, conversation_memory, knowledge, documents, chunks,
                      transactions, deadlines)
