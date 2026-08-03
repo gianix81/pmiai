@@ -46,6 +46,23 @@ const info = db.prepare("INSERT INTO clients (name,brand_voice,keywords) VALUES 
 const p2 = await content.generatePost({ clientId: info.lastInsertRowid, topic: 'novita', notify: false });
 ok(p2.client_id === info.lastInsertRowid, 'Multi-cliente: post generato per il secondo cliente');
 
+// 8. ORCHESTRATORE SIRIO — routing verso i 5 agenti
+const orch = await import('./modules/orchestrator.js');
+const r_stella = await orch.handle('sess1', 'creami un post su come trovare clienti');
+ok(r_stella.agent === 'stella', 'Orchestratore instrada a Stella (contenuti)');
+const r_luna = await orch.handle('sess1', 'quanto ho incassato questo mese?');
+ok(r_luna.agent === 'luna', 'Orchestratore instrada a Luna (contabilità)');
+const r_sole = await orch.handle('sess1', 'mandami una mail a Marco');
+ok(r_sole.agent === 'sole', 'Orchestratore instrada a Sole (assistente)');
+const r_cometa = await orch.handle('sess1', 'crea una campagna ads su Meta');
+ok(r_cometa.agent === 'cometa', 'Orchestratore instrada a Cometa (ads)');
+const r_luce = await orch.handle('sess1', 'quanti lead abbiamo?');
+ok(r_luce.agent === 'luce', 'Orchestratore instrada a Luce (lead)');
+const r_chat = await orch.handle('sess1', 'ciao come va');
+ok(r_chat.agent === null, 'Orchestratore risponde diretto alla chiacchiera');
+const mem = db.prepare("SELECT COUNT(*) c FROM conversation_memory WHERE session_key='sess1'").get().c;
+ok(mem >= 12, 'Memoria conversazionale salvata per session_key');
+
 console.log('\nStato finale:',
   db.prepare('SELECT (SELECT COUNT(*) FROM clients) c,(SELECT COUNT(*) FROM posts) p,(SELECT COUNT(*) FROM leads) l,(SELECT COUNT(*) FROM bookings) b,(SELECT COUNT(*) FROM emails) e').get());
 console.log('== FINE ==\n');

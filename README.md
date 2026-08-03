@@ -4,6 +4,7 @@ Progetto Node.js completo che sostituisce ManyChat, Buffer, GoHighLevel e SetSma
 
 ## Cosa fa — completo e testato
 
+- **Sirio (orchestratore)** — scrivi in linguaggio naturale (chat o Telegram) e Sirio **instrada all'agente giusto** (Sole/Stella/Luna/Cometa/Luce), con memoria per conversazione, knowledge base consultata prima di agire, enum chiusi e whitelist chat_id.
 - **Contenuti** — l'AI genera post con la **voce di brand per cliente**, gate umano di approvazione, pubblicazione automatica allo slot previsto (scheduler).
 - **Comment-to-DM** — webhook Instagram con **guardrail Meta** (1 DM/utente/24h, limite orario), verifica **firma X-Hub-Signature-256**, cattura email + opt-out STOP.
 - **AI Setter + Booking** — qualifica il lead in conversazione, crea la prenotazione, chiede conferma su **Telegram**.

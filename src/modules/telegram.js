@@ -3,6 +3,7 @@ import db from '../db.js';
 import { config } from '../config.js';
 import * as content from './content.js';
 import * as booking from './booking.js';
+import * as orchestrator from './orchestrator.js';
 
 const API = t => `https://api.telegram.org/bot${config.telegram.token}/${t}`;
 let offset = 0;
@@ -49,6 +50,7 @@ export async function poll() {
     for (const u of r.result || []) {
       offset = u.update_id + 1;
       if (u.callback_query) await onCallback(u.callback_query);
+      else if (u.message && u.message.text) await onMessage(u.message);
     }
   } catch (e) { /* rete: riproverà al prossimo giro */ }
 }
@@ -69,6 +71,17 @@ async function onCallback(cq) {
     body: JSON.stringify({ callback_query_id: cq.id, text: msg }),
   }).catch(() => {});
   await send(msg);
+}
+
+// Messaggio di testo in arrivo -> orchestratore Sirio (con whitelist)
+async function onMessage(msg) {
+  const chatId = String(msg.chat.id);
+  if (config.telegram.allowed.length && !config.telegram.allowed.includes(chatId)) {
+    return; // non autorizzato: ignora (protegge i tuoi crediti AI)
+  }
+  if (/^\//.test(msg.text)) return; // ignora comandi tipo /start
+  const out = await orchestrator.handle(chatId, msg.text);
+  await send(`${out.emoji} ${out.reply}`);
 }
 
 // Avvia il polling periodico

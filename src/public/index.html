@@ -37,13 +37,20 @@
   <h1>Sistema AI · Dashboard</h1>
   <div class="sub" id="status">caricamento…</div>
   <div class="tabs">
-    <button class="on" data-p="c">Contenuti</button>
+    <button class="on" data-p="s">💬 Sirio</button>
+    <button data-p="c">Contenuti</button>
     <button data-p="l">Lead</button>
     <button data-p="b">Prenotazioni</button>
     <button data-p="e">Cold Email</button>
   </div>
 
-  <div class="panel on" id="c">
+  <div class="panel on" id="s">
+    <div id="siriochat" style="min-height:200px;margin-bottom:10px"></div>
+    <div class="gen"><input id="sirioin" placeholder="Scrivi a Sirio: es. crea un post su..."><button onclick="sirioSend()">Invia</button></div>
+    <div class="meta" style="color:var(--muted);font-size:12px">Prova: "quanti lead abbiamo?", "quanto ho incassato?", "crea una campagna ads"</div>
+  </div>
+
+  <div class="panel" id="c">
     <div class="gen">
       <input id="topic" placeholder="Tema del post">
       <select id="client"></select>
@@ -91,6 +98,10 @@ async function procMail(){const r=await api('/api/emails/process',{method:'POST'
 async function loadEmails(){const es=await api('/api/emails');const el=document.getElementById('emails');
   if(!es.length){el.innerHTML='<div class="empty">Nessuna email in coda.</div>';return;}
   el.innerHTML=es.map(x=>`<div class="card"><div class="head"><span class="hk">${esc(x.to_email)}</span><span class="st ${x.status==='inviata'?'approvato':x.status==='errore'?'errore':'da_approvare'}">${x.status}</span></div><div class="meta">${esc(x.subject)}</div></div>`).join('');}
+async function sirioSend(){const inp=document.getElementById('sirioin');const t=inp.value.trim();if(!t)return;inp.value='';
+  addChat('user',t);const r=await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,session:'dashboard'})});
+  addChat('ai',(r.emoji||'💬')+' '+(r.reply||''));health();}
+function addChat(role,text){const el=document.getElementById('siriochat');el.innerHTML+=`<div class="msg ${role}" style="display:block;max-width:90%;margin:${role==='ai'?'6px 0 6px auto':'6px auto 6px 0'}">${esc(text)}</div>`;el.scrollTop=el.scrollHeight;}
 function esc(s){return String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 loadClients();health();loadPosts();
 </script>

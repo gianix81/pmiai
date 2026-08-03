@@ -14,6 +14,18 @@ async function complete(system, user) {
 
 // ---------- MOCK (nessuna chiave, genera output plausibile) ----------
 function mock(user) {
+  // Caso ORCHESTRATORE (routing): riconosce il prompt "Instrada (JSON)"
+  if (/Instrada \(JSON\)/i.test(user)) {
+    const q = (user.match(/RICHIESTA:\s*([^\n]+)/i) || [, ''])[1].toLowerCase();
+    let agent = null;
+    if (/(post|carosell|reel|contenut|social|caption)/.test(q)) agent = 'stella';
+    else if (/(incass|spes|fattur|contabil|prima nota|scadenz|iva|guadagn|bilanci)/.test(q)) agent = 'luna';
+    else if (/(mail|email|agenda|appuntament|promemoria|calendar|ricerca|prenota\w* volo|hotel)/.test(q)) agent = 'sole';
+    else if (/(campagn|ads|adv|pubblicit|sponsor|meta ads|budget)/.test(q)) agent = 'cometa';
+    else if (/(lead|contatt|dm|qualific|vendit|call|cliente)/.test(q)) agent = 'luce';
+    if (!agent) return JSON.stringify({ agent: null, task_description: '', direct_reply: 'Ciao! Dimmi cosa ti serve: contenuti, lead, contabilità, ads o assistente.' });
+    return JSON.stringify({ agent, task_description: q, direct_reply: '' });
+  }
   // Caso SETTER (qualifica lead): riconosce il prompt di conversazione
   if (/Conversazione:/i.test(user)) {
     const turns = (user.match(/lead:/gi) || []).length;

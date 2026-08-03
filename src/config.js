@@ -27,7 +27,12 @@ export const config = {
     pageToken: process.env.META_PAGE_TOKEN || '',
     igBusinessId: process.env.IG_BUSINESS_ID || '',
   },
-  telegram: { token: process.env.TELEGRAM_BOT_TOKEN || '', chatId: process.env.TELEGRAM_CHAT_ID || '' },
+  telegram: {
+    token: process.env.TELEGRAM_BOT_TOKEN || '',
+    chatId: process.env.TELEGRAM_CHAT_ID || '',
+    // whitelist: solo questi chat_id possono usare l'orchestratore (sicurezza: bot pubblico)
+    allowed: (process.env.TELEGRAM_ALLOWED_CHAT_IDS || process.env.TELEGRAM_CHAT_ID || '').split(',').map(s => s.trim()).filter(Boolean),
+  },
   smtp: {
     host: process.env.SMTP_HOST || '', port: Number(process.env.SMTP_PORT || 587),
     user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '',

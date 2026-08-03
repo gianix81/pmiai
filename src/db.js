@@ -81,7 +81,33 @@ CREATE TABLE IF NOT EXISTS approvals (
   status TEXT DEFAULT 'in_attesa',
   created_at TEXT DEFAULT (datetime('now'))
 );
+
+-- memoria conversazionale dell'orchestratore (session_key = chat_id Telegram)
+CREATE TABLE IF NOT EXISTS conversation_memory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_key TEXT,
+  role TEXT,                                 -- user | assistant
+  content TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+-- knowledge base / policy per agente (consultata prima di agire, editabile a runtime)
+CREATE TABLE IF NOT EXISTS knowledge (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  agent TEXT,                                -- sirio(globale) | sole | stella | luna | cometa | luce
+  content TEXT,
+  active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now'))
+);
 `);
+
+// Knowledge di default
+if (db.prepare('SELECT COUNT(*) n FROM knowledge').get().n === 0) {
+  const k = db.prepare('INSERT INTO knowledge (agent, content) VALUES (?,?)');
+  k.run('sirio', 'Agenzia: Sirio Media House. Tono diretto e concreto. Non promettere risultati garantiti.');
+  k.run('luce', 'Non fare mai cold DM di massa. Rispetta i limiti Meta (1 DM/utente/24h).');
+  k.run('luna', 'Segnala sempre scadenze e incassi mancanti. Numeri sempre in euro.');
+}
 
 // Cliente demo di default
 const c = db.prepare('SELECT COUNT(*) n FROM clients').get().n;

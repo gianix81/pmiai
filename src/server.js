@@ -11,6 +11,8 @@ import * as booking from './modules/booking.js';
 import * as email from './modules/email.js';
 import * as telegram from './modules/telegram.js';
 import * as scheduler from './modules/scheduler.js';
+import * as orchestrator from './modules/orchestrator.js';
+import * as knowledge from './modules/knowledge.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -75,6 +77,18 @@ app.post('/api/bookings/:id/confirm', (req, res) => res.json(booking.confirmBook
 app.get('/api/emails', (_req, res) => res.json(email.listEmails()));
 app.post('/api/emails/queue', (req, res) => res.json(email.queue(req.body)));
 app.post('/api/emails/process', async (_req, res) => res.json(await email.processQueue()));
+
+// ---------- ORCHESTRATORE SIRIO (chat naturale) ----------
+app.post('/api/chat', async (req, res) => {
+  const session = req.body.session || 'dashboard';
+  res.json(await orchestrator.handle(session, req.body.text || ''));
+});
+app.get('/api/agents', (_req, res) =>
+  res.json(Object.entries(orchestrator.AGENTS).map(([k, v]) => ({ name: k, emoji: v.emoji, desc: v.desc }))));
+
+// ---------- KNOWLEDGE BASE ----------
+app.get('/api/knowledge', (_req, res) => res.json(knowledge.listKnowledge()));
+app.post('/api/knowledge', (req, res) => res.json(knowledge.addKnowledge(req.body.agent, req.body.content)));
 
 // ---------- STATO ----------
 app.get('/api/health', (_req, res) => res.json({
