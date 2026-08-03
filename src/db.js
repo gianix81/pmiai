@@ -1,10 +1,13 @@
 // Database SQLite locale (un solo file, zero server esterni)
 import Database from 'better-sqlite3';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const db = new Database(path.join(__dirname, '..', 'data', 'sistema.db'));
+const dataDir = path.join(__dirname, '..', 'data');
+fs.mkdirSync(dataDir, { recursive: true });
+const db = new Database(path.join(dataDir, 'sistema.db'));
 db.pragma('journal_mode = WAL');
 
 db.exec(`
@@ -99,6 +102,59 @@ CREATE TABLE IF NOT EXISTS knowledge (
   active INTEGER DEFAULT 1,
   created_at TEXT DEFAULT (datetime('now'))
 );
+
+-- ========== RAG: documenti lunghi + chunk vettorializzati ==========
+CREATE TABLE IF NOT EXISTS documents (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  client_id INTEGER DEFAULT 1,
+  agent TEXT DEFAULT 'sirio',                -- a quale agente serve (sirio = tutti)
+  title TEXT,
+  source TEXT,                               -- nome file / URL / "manuale"
+  chars INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS chunks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  document_id INTEGER,
+  agent TEXT DEFAULT 'sirio',
+  client_id INTEGER DEFAULT 1,
+  ord INTEGER DEFAULT 0,
+  text TEXT,
+  dims INTEGER,
+  model TEXT,
+  embedding BLOB,                            -- Float32Array serializzato
+  created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_chunks_doc ON chunks(document_id);
+CREATE INDEX IF NOT EXISTS idx_chunks_agent ON chunks(agent);
+
+-- ========== LUNA: prima nota / movimenti bancari ==========
+CREATE TABLE IF NOT EXISTS transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  client_id INTEGER DEFAULT 1,
+  date TEXT,                                 -- ISO yyyy-mm-dd
+  description TEXT,
+  amount REAL,                               -- positivo = entrata, negativo = uscita
+  category TEXT DEFAULT 'da_categorizzare',
+  kind TEXT,                                 -- entrata | uscita
+  source TEXT,                               -- nome file estratto conto
+  hash TEXT UNIQUE,                          -- anti-duplicato (data+desc+importo)
+  note TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(date);
+
+-- scadenze fiscali/pagamenti da ricordare (usate nel morning brief)
+CREATE TABLE IF NOT EXISTS deadlines (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  client_id INTEGER DEFAULT 1,
+  due_date TEXT,
+  label TEXT,
+  amount REAL,
+  status TEXT DEFAULT 'aperta',              -- aperta|pagata|annullata
+  created_at TEXT DEFAULT (datetime('now'))
+);
 `);
 
 // Knowledge di default
@@ -107,6 +163,7 @@ if (db.prepare('SELECT COUNT(*) n FROM knowledge').get().n === 0) {
   k.run('sirio', 'Agenzia: Sirio Media House. Tono diretto e concreto. Non promettere risultati garantiti.');
   k.run('luce', 'Non fare mai cold DM di massa. Rispetta i limiti Meta (1 DM/utente/24h).');
   k.run('luna', 'Segnala sempre scadenze e incassi mancanti. Numeri sempre in euro.');
+  k.run('sole', 'Non inviare mai email o inviti senza approvazione umana. Riassumi, non decidere.');
 }
 
 // Cliente demo di default

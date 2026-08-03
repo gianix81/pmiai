@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sistema AI · Dashboard</title>
+<title>Sirio · Dashboard</title>
 <style>
-  :root{--bg:#0c1a24;--card:#14313b;--line:#25505c;--orange:#f4a259;--green:#7cb342;--cream:#f6edd8;--muted:#9db4bd}
+  :root{--bg:#0c1a24;--card:#14313b;--line:#25505c;--orange:#f4a259;--green:#7cb342;--cream:#f6edd8;--muted:#9db4bd;--red:#ff9a9a}
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--cream);padding:16px;max-width:760px;margin:0 auto}
-  h1{font-size:22px;color:#fff}.sub{color:var(--muted);font-size:12px;margin:2px 0 12px}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--cream);padding:16px;max-width:820px;margin:0 auto}
+  h1{font-size:22px;color:#fff}.sub{color:var(--muted);font-size:12px;margin:2px 0 12px;line-height:1.5}
   .tabs{display:flex;gap:6px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5;flex-wrap:wrap}
-  .tabs button{flex:1;min-width:70px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:13px;padding:10px 4px;border-radius:10px;cursor:pointer}
+  .tabs button{flex:1;min-width:78px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:13px;padding:10px 4px;border-radius:10px;cursor:pointer}
   .tabs button.on{background:var(--orange);color:#08151c;border-color:var(--orange)}
   .panel{display:none}.panel.on{display:block}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
@@ -18,38 +18,54 @@
   .meta{font-size:12px;color:var(--muted);margin-top:8px}.tag{color:var(--orange);margin-right:6px}
   .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   button.act{border:none;border-radius:9px;padding:9px 12px;font-weight:700;font-size:13px;cursor:pointer}
-  .ok{background:var(--green);color:#08151c}.no{background:#3a2020;color:#ff9a9a}.neutral{background:#1d3b45;color:var(--cream)}
+  .ok{background:var(--green);color:#08151c}.no{background:#3a2020;color:var(--red)}.neutral{background:#1d3b45;color:var(--cream)}
   .st{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700}
   .st.da_approvare{background:#4a3a1a;color:var(--orange)}.st.approvato{background:#1f3a24;color:var(--green)}
-  .st.scartato,.st.errore{background:#3a2020;color:#ff9a9a}.st.pubblicato{background:#1d3b45;color:var(--cream)}
-  input,select{background:#0f242c;border:1px solid var(--line);color:var(--cream);border-radius:9px;padding:10px;font-size:14px;width:100%}
-  .gen{display:flex;gap:8px;margin-bottom:12px}.gen input{flex:2}.gen select{flex:1}
-  .gen button{background:var(--orange);color:#08151c;border:none;border-radius:9px;padding:0 16px;font-weight:800;cursor:pointer}
+  .st.scartato,.st.errore{background:#3a2020;color:var(--red)}.st.pubblicato{background:#1d3b45;color:var(--cream)}
+  input,select,textarea{background:#0f242c;border:1px solid var(--line);color:var(--cream);border-radius:9px;padding:10px;font-size:14px;width:100%;font-family:inherit}
+  textarea{min-height:110px;resize:vertical}
+  .gen{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.gen input{flex:2;min-width:150px}.gen select{flex:1;min-width:110px}
+  .gen button{background:var(--orange);color:#08151c;border:none;border-radius:9px;padding:10px 16px;font-weight:800;cursor:pointer}
   .empty{color:var(--muted);text-align:center;padding:26px;font-size:14px}
   .pill{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:3px 9px}
-  .head{display:flex;justify-content:space-between;align-items:center}
+  .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
   .chat{margin-top:8px;border-top:1px solid var(--line);padding-top:8px;display:none}
   .msg{font-size:12.5px;margin:4px 0;padding:6px 9px;border-radius:8px;max-width:85%}
-  .msg.lead{background:#0f242c}.msg.ai{background:#1f3a24;margin-left:auto}
+  .msg.lead,.msg.user{background:#0f242c}.msg.ai{background:#1f3a24;margin-left:auto}
+  pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55}
+  .kpi{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .kpi div{flex:1;min-width:110px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .kpi b{display:block;font-size:18px;color:#fff;margin-top:2px}
+  .kpi .in b{color:var(--green)}.kpi .out b{color:var(--red)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:700}
+  td.n{text-align:right;white-space:nowrap}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer}
+  .drop.over{border-color:var(--orange);color:var(--orange)}
 </style>
 </head>
 <body>
-  <h1>Sistema AI · Dashboard</h1>
+  <h1>🌟 Sirio · Dashboard</h1>
   <div class="sub" id="status">caricamento…</div>
   <div class="tabs">
     <button class="on" data-p="s">💬 Sirio</button>
-    <button data-p="c">Contenuti</button>
-    <button data-p="l">Lead</button>
-    <button data-p="b">Prenotazioni</button>
-    <button data-p="e">Cold Email</button>
+    <button data-p="c">⭐ Contenuti</button>
+    <button data-p="l">💡 Lead</button>
+    <button data-p="b">📅 Call</button>
+    <button data-p="e">✉️ Email</button>
+    <button data-p="n">🌙 Contabilità</button>
+    <button data-p="d">📚 Documenti</button>
   </div>
 
+  <!-- 💬 SIRIO -->
   <div class="panel on" id="s">
     <div id="siriochat" style="min-height:200px;margin-bottom:10px"></div>
     <div class="gen"><input id="sirioin" placeholder="Scrivi a Sirio: es. crea un post su..."><button onclick="sirioSend()">Invia</button></div>
-    <div class="meta" style="color:var(--muted);font-size:12px">Prova: "quanti lead abbiamo?", "quanto ho incassato?", "crea una campagna ads"</div>
+    <div class="meta">Prova: "quanti lead abbiamo?", "fammi il punto su incassi e spese", "cosa dice il listino sul pacchetto Pro?", "com'è la mia giornata?"</div>
   </div>
 
+  <!-- ⭐ CONTENUTI -->
   <div class="panel" id="c">
     <div class="gen">
       <input id="topic" placeholder="Tema del post">
@@ -58,31 +74,103 @@
     </div>
     <div id="posts"></div>
   </div>
+
+  <!-- 💡 LEAD -->
   <div class="panel" id="l"><div id="leads"></div></div>
+
+  <!-- 📅 PRENOTAZIONI -->
   <div class="panel" id="b"><div id="bookings"></div></div>
+
+  <!-- ✉️ COLD EMAIL -->
   <div class="panel" id="e">
     <div class="gen"><input id="mailto" placeholder="email@destinatario"><input id="mailsub" placeholder="oggetto"><button onclick="queueMail()">Accoda</button></div>
     <div class="row" style="margin-bottom:10px"><button class="act neutral" onclick="procMail()">▶ Invia coda (nei limiti)</button></div>
     <div id="emails"></div>
   </div>
 
+  <!-- 🌙 CONTABILITÀ (Luna) -->
+  <div class="panel" id="n">
+    <div class="card">
+      <div class="hk">Carica l'estratto conto</div>
+      <div class="meta">CSV esportato dalla banca (qualsiasi formato: Data / Descrizione / Importo, oppure Entrate / Uscite separate).</div>
+      <div class="drop" id="drop" style="margin-top:10px">Trascina qui il CSV o clicca per sceglierlo</div>
+      <input type="file" id="csvfile" accept=".csv,text/csv" style="display:none">
+      <div id="impres" class="meta"></div>
+    </div>
+    <div class="kpi" id="kpi"></div>
+    <div class="card"><pre id="lunareport">…</pre>
+      <div class="row">
+        <button class="act neutral" onclick="loadAccounting()">↻ Aggiorna</button>
+        <button class="act neutral" onclick="recat()">🏷 Ricategorizza</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hk">Nuova scadenza</div>
+      <div class="gen" style="margin-top:8px">
+        <input id="dl_date" type="date"><input id="dl_label" placeholder="es. F24 mensile"><input id="dl_amount" placeholder="importo €" style="max-width:120px">
+        <button onclick="addDeadline()">Aggiungi</button>
+      </div>
+      <div id="deadlines"></div>
+    </div>
+    <div class="card"><div class="hk">Ultimi movimenti</div><div id="txs"></div></div>
+  </div>
+
+  <!-- 📚 DOCUMENTI (RAG) -->
+  <div class="panel" id="d">
+    <div class="card">
+      <div class="hk">Chiedi ai tuoi documenti</div>
+      <div class="gen" style="margin-top:8px"><input id="ragq" placeholder="es. quanto costa il pacchetto Pro?"><button onclick="ragAsk()">Chiedi</button></div>
+      <pre id="raganswer" class="meta"></pre>
+    </div>
+    <div class="card">
+      <div class="hk">Aggiungi un documento</div>
+      <div class="meta">Listini, brand voice, FAQ, contratti, procedure. Viene spezzato e indicizzato per la ricerca semantica.</div>
+      <div class="gen" style="margin-top:8px">
+        <input id="doctitle" placeholder="Titolo (es. Listino 2026)">
+        <select id="docagent">
+          <option value="sirio">tutti gli agenti</option>
+          <option value="sole">☀️ Sole</option><option value="stella">⭐ Stella</option>
+          <option value="luna">🌙 Luna</option><option value="cometa">☄️ Cometa</option><option value="luce">💡 Luce</option>
+        </select>
+      </div>
+      <textarea id="doctext" placeholder="Incolla qui il testo del documento…"></textarea>
+      <div class="row">
+        <button class="act ok" onclick="ragAdd()">＋ Indicizza</button>
+        <button class="act neutral" onclick="document.getElementById('txtfile').click()">📄 Carica file .txt/.md</button>
+        <input type="file" id="txtfile" accept=".txt,.md,.csv" style="display:none">
+      </div>
+    </div>
+    <div id="docs"></div>
+  </div>
+
 <script>
 const api=(u,o)=>fetch(u,o).then(r=>r.json());
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const eur=n=>Number(n||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.getElementById(b.dataset.p).classList.add('on');
-  ({l:loadLeads,b:loadBookings,e:loadEmails}[b.dataset.p]||(()=>{}))();
+  ({l:loadLeads,b:loadBookings,e:loadEmails,n:loadAccounting,d:loadDocs}[b.dataset.p]||(()=>{}))();
 });
+
 async function health(){const h=await api('/api/health');const r=h.readiness;
-  document.getElementById('status').textContent=`AI: ${r.ai} · IG: ${r.instagram} · Telegram: ${r.telegram} · Email: ${r.email} · DRY_RUN: ${r.dryRun} — ${h.counts.posts} post, ${h.counts.leads} lead, ${h.counts.bookings} call`;}
+  document.getElementById('status').innerHTML=
+    `AI: <b>${esc(r.ai)}</b> · embeddings: ${esc(r.embeddings)} · IG: ${esc(r.instagram)} · Telegram: ${esc(r.telegram)} · Google: ${esc(r.google)} · DRY_RUN: ${r.dryRun}<br>`+
+    `${h.counts.posts} post · ${h.counts.leads} lead · ${h.counts.bookings} call · ${h.counts.transactions} movimenti · ${h.counts.documents} documenti (${h.rag.chunks} chunk)`;}
+
+/* ---- contenuti ---- */
 async function loadClients(){const cs=await api('/api/clients');document.getElementById('client').innerHTML=cs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');}
-async function gen(){const t=document.getElementById('topic').value||'AI per le PMI';const cid=document.getElementById('client').value;document.getElementById('topic').value='';await api('/api/posts/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:t,client_id:Number(cid)})});loadPosts();health();}
+async function gen(){const t=document.getElementById('topic').value||'AI per le PMI';const cid=document.getElementById('client').value;document.getElementById('topic').value='';
+  await api('/api/posts/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:t,client_id:Number(cid)})});loadPosts();health();}
 async function loadPosts(){const posts=await api('/api/posts');const el=document.getElementById('posts');
   if(!posts.length){el.innerHTML='<div class="empty">Nessun post. Genera il primo.</div>';return;}
   el.innerHTML=posts.map(p=>`<div class="card"><div class="head"><span class="hk">${esc(p.hook)}</span><span class="st ${p.status}">${p.status.replace('_',' ')}</span></div>
     <div class="cap">${esc(p.caption)}</div><div class="meta">${(p.hashtags||[]).map(h=>`<span class="tag">${esc(h)}</span>`).join('')}<br>${esc(p.cta||'')}</div>
     <div class="row"><button class="act ok" onclick="st(${p.id},'approvato')">✓ Approva</button><button class="act no" onclick="st(${p.id},'scartato')">✕ Scarta</button></div></div>`).join('');}
 async function st(id,s){await api('/api/posts/'+id+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:s})});loadPosts();}
+
+/* ---- lead / call / email ---- */
 async function loadLeads(){const leads=await api('/api/leads');const el=document.getElementById('leads');
   if(!leads.length){el.innerHTML='<div class="empty">Nessun lead. Arrivano dal comment-to-DM.</div>';return;}
   el.innerHTML=leads.map(l=>`<div class="card"><div class="head" onclick="chat(${l.id})" style="cursor:pointer"><span class="hk">@${esc(l.username||l.ig_user_id)}</span><span class="pill">${esc(l.status)} · score ${l.score}</span></div>
@@ -93,16 +181,81 @@ async function loadBookings(){const b=await api('/api/bookings');const el=docume
   if(!b.length){el.innerHTML='<div class="empty">Nessuna prenotazione.</div>';return;}
   el.innerHTML=b.map(x=>`<div class="card"><div class="head"><span class="hk">@${esc(x.username||x.lead_id)}</span><span class="pill">${esc(x.status)}</span></div><div class="meta">${new Date(x.slot).toLocaleString('it-IT')}</div>${x.status==='da_confermare'?`<div class="row"><button class="act ok" onclick="conf(${x.id})">✓ Conferma</button></div>`:''}</div>`).join('');}
 async function conf(id){await api('/api/bookings/'+id+'/confirm',{method:'POST'});loadBookings();}
-async function queueMail(){const to=document.getElementById('mailto').value,sub=document.getElementById('mailsub').value;if(!to)return;await api('/api/emails/queue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to,subject:sub||'Ciao',body:'Messaggio di prova.'})});document.getElementById('mailto').value='';loadEmails();}
+async function queueMail(){const to=document.getElementById('mailto').value,sub=document.getElementById('mailsub').value;if(!to)return;
+  await api('/api/emails/queue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to,subject:sub||'Ciao',body:'Messaggio di prova.'})});document.getElementById('mailto').value='';loadEmails();}
 async function procMail(){const r=await api('/api/emails/process',{method:'POST'});alert('Inviate: '+(r.sent||0));loadEmails();}
 async function loadEmails(){const es=await api('/api/emails');const el=document.getElementById('emails');
   if(!es.length){el.innerHTML='<div class="empty">Nessuna email in coda.</div>';return;}
   el.innerHTML=es.map(x=>`<div class="card"><div class="head"><span class="hk">${esc(x.to_email)}</span><span class="st ${x.status==='inviata'?'approvato':x.status==='errore'?'errore':'da_approvare'}">${x.status}</span></div><div class="meta">${esc(x.subject)}</div></div>`).join('');}
+
+/* ---- 💬 chat Sirio ---- */
 async function sirioSend(){const inp=document.getElementById('sirioin');const t=inp.value.trim();if(!t)return;inp.value='';
-  addChat('user',t);const r=await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,session:'dashboard'})});
+  addChat('user',t);addChat('ai','…');
+  const r=await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,session:'dashboard'})});
+  const el=document.getElementById('siriochat');el.lastChild.remove();
   addChat('ai',(r.emoji||'💬')+' '+(r.reply||''));health();}
-function addChat(role,text){const el=document.getElementById('siriochat');el.innerHTML+=`<div class="msg ${role}" style="display:block;max-width:90%;margin:${role==='ai'?'6px 0 6px auto':'6px auto 6px 0'}">${esc(text)}</div>`;el.scrollTop=el.scrollHeight;}
-function esc(s){return String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function addChat(role,text){const el=document.getElementById('siriochat');const d=document.createElement('div');
+  d.className='msg '+role;d.style.cssText=`display:block;max-width:90%;white-space:pre-wrap;margin:${role==='ai'?'6px 0 6px auto':'6px auto 6px 0'}`;
+  d.textContent=text;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+
+/* ---- 🌙 contabilità ---- */
+const drop=document.getElementById('drop'),csvfile=document.getElementById('csvfile');
+drop.onclick=()=>csvfile.click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');if(e.dataTransfer.files[0])uploadCsv(e.dataTransfer.files[0])};
+csvfile.onchange=e=>{if(e.target.files[0])uploadCsv(e.target.files[0])};
+async function uploadCsv(file){
+  const res=document.getElementById('impres');res.textContent='Importo e categorizzo…';
+  const csv=await file.text();
+  const r=await api('/api/accounting/import?source='+encodeURIComponent(file.name),{method:'POST',headers:{'Content-Type':'text/csv'},body:csv});
+  res.textContent=r.error?('Errore: '+r.error)
+    :`✅ ${r.imported} movimenti importati, ${r.duplicates} già presenti, ${r.skipped} righe scartate.`;
+  loadAccounting();health();}
+async function recat(){document.getElementById('impres').textContent='Categorizzo…';
+  const r=await api('/api/accounting/categorize',{method:'POST'});
+  document.getElementById('impres').textContent=`🏷 ${r.categorized} movimenti categorizzati, ${r.pending} rimasti.`;loadAccounting();}
+async function loadAccounting(){
+  const [s,rep,txs,dls]=await Promise.all([api('/api/accounting/summary'),api('/api/accounting/report'),api('/api/accounting/transactions?limit=40'),api('/api/accounting/deadlines')]);
+  document.getElementById('kpi').innerHTML=
+    `<div class="in">Entrate<b>${eur(s.entrate)}</b></div><div class="out">Uscite<b>${eur(s.uscite)}</b></div>
+     <div>Saldo<b>${eur(s.saldo)}</b></div><div>Movimenti<b>${s.movimenti}</b></div>`;
+  document.getElementById('lunareport').textContent=rep.text;
+  document.getElementById('deadlines').innerHTML=dls.length
+    ?`<table><tr><th>Scadenza</th><th>Voce</th><th class="n">Importo</th><th></th></tr>${dls.map(d=>`<tr><td>${esc(d.due_date)}</td><td>${esc(d.label)}</td><td class="n">${d.amount?eur(d.amount):'-'}</td><td class="n"><button class="act ok" onclick="payDl(${d.id})">✓</button></td></tr>`).join('')}</table>`
+    :'<div class="empty">Nessuna scadenza aperta.</div>';
+  document.getElementById('txs').innerHTML=txs.length
+    ?`<table><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th class="n">Importo</th></tr>${txs.map(t=>`<tr><td>${esc(t.date)}</td><td>${esc(t.description.slice(0,44))}</td><td>${esc(t.category)}</td><td class="n" style="color:${t.amount<0?'var(--red)':'var(--green)'}">${eur(t.amount)}</td></tr>`).join('')}</table>`
+    :'<div class="empty">Nessun movimento. Carica un estratto conto.</div>';}
+async function addDeadline(){const due_date=document.getElementById('dl_date').value,label=document.getElementById('dl_label').value;
+  if(!due_date||!label)return alert('Servono data e descrizione.');
+  await api('/api/accounting/deadlines',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({due_date,label,amount:Number(document.getElementById('dl_amount').value)||null})});
+  document.getElementById('dl_label').value='';document.getElementById('dl_amount').value='';loadAccounting();}
+async function payDl(id){await api('/api/accounting/deadlines/'+id+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'pagata'})});loadAccounting();}
+
+/* ---- 📚 documenti (RAG) ---- */
+document.getElementById('txtfile').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+  document.getElementById('doctext').value=await f.text();
+  if(!document.getElementById('doctitle').value)document.getElementById('doctitle').value=f.name;};
+async function ragAdd(){const title=document.getElementById('doctitle').value,text=document.getElementById('doctext').value;
+  if(text.trim().length<30)return alert('Testo troppo corto.');
+  const r=await api('/api/documents',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({title:title||'documento',text,agent:document.getElementById('docagent').value})});
+  if(r.error)return alert(r.error);
+  document.getElementById('doctext').value='';document.getElementById('doctitle').value='';loadDocs();health();}
+async function ragAsk(){const q=document.getElementById('ragq').value.trim();if(!q)return;
+  const out=document.getElementById('raganswer');out.textContent='Cerco nei documenti…';
+  const r=await api('/api/documents/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+  out.textContent=r.answer+(r.sources?.length?`\n\n📎 Fonti: ${r.sources.join(', ')}`:'');}
+async function loadDocs(){const ds=await api('/api/documents');const el=document.getElementById('docs');
+  if(!ds.length){el.innerHTML='<div class="empty">Nessun documento indicizzato.</div>';return;}
+  el.innerHTML=ds.map(d=>`<div class="card"><div class="head"><span class="hk">${esc(d.title)}</span><span class="pill">${esc(d.agent)} · ${d.chunks} chunk</span></div>
+    <div class="meta">${esc(d.source)} · ${d.chars} caratteri · ${esc(d.created_at)}</div>
+    <div class="row"><button class="act no" onclick="delDoc(${d.id})">🗑 Elimina</button></div></div>`).join('');}
+async function delDoc(id){if(!confirm('Eliminare il documento e i suoi chunk?'))return;
+  await fetch('/api/documents/'+id,{method:'DELETE'});loadDocs();health();}
+
 loadClients();health();loadPosts();
 </script>
 </body>

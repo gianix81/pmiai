@@ -12,3 +12,7 @@ data/*.db-wal
 # Log e sistema
 *.log
 .DS_Store
+
+# Archivi temporanei / cartella di scarto
+*.tar.gz
+_to_delete/
